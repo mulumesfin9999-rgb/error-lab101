@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free Fall Lab Simulation — Algebra-Based Mechanics</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    margin: 0;
+    padding: 16px;
+    background: #f4f6fa;
+    color: #1a2540;
+  }
+  h1 { margin: 0 0 4px 0; font-size: 22px; color: #1a3a7a; }
+  .subtitle { color: #5a6a85; font-size: 14px; margin-bottom: 16px; }
+  .container { max-width: 1200px; margin: 0 auto; }
+  .card {
+    background: white;
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }
+  .section-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1a3a7a;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid #d9e2f3;
+  }
+  .info {
+    background: #fff8e1;
+    border-left: 3px solid #f0b800;
+    padding: 10px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    margin-bottom: 12px;
+    color: #5a4a00;
+  }
+  .help {
+    background: #f0f7ff;
+    border-left: 3px solid #2a5db0;
+    padding: 10px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    margin: 12px 0;
+    color: #1a3a7a;
+  }
+  .controls { display: grid; gap: 12px; margin-bottom: 12px; }
+  .control { display: flex; flex-direction: column; }
+  .control label {
+    font-size: 13px; font-weight: 600; color: #1a3a7a; margin-bottom: 4px;
+    display: flex; justify-content: space-between;
+  }
+  .control .value {
+    font-family: "SF Mono", Menlo, monospace;
+    font-size: 13px; color: #2a5db0; font-weight: 700;
+  }
+  input[type="range"] { width: 100%; accent-color: #2a5db0; }
+  select {
+    padding: 6px 8px; border-radius: 6px; border: 1px solid #d8dde8;
+    font-size: 13px; width: 100%;
+  }
+  button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  button.primary { background: #2a5db0; color: white; }
+  button.primary:hover { background: #1a4590; }
+  button.secondary { background: #e0e6f0; color: #1a3a7a; }
+  button.secondary:hover { background: #c8d2e4; }
+  button.danger { background: #d9544f; color: white; }
+  button.danger:hover { background: #b53a35; }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  .button-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  canvas {
+    width: 100%;
+    height: auto;
+    border: 1px solid #d8dde8;
+    border-radius: 6px;
+    background: white;
+    display: block;
+  }
+  .readouts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .readout {
+    background: #f4f6fa;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border-left: 3px solid #2a5db0;
+  }
+  .readout .label {
+    font-size: 11px; color: #5a6a85;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .readout .num {
+    font-family: "SF Mono", Menlo, monospace;
+    font-size: 18px; font-weight: 700; color: #1a2540;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }
+  th, td {
+    padding: 6px 8px; border: 1px solid #d8dde8;
+    text-align: center; font-family: "SF Mono", Menlo, monospace;
+  }
+  th { background: #d9e2f3; color: #1a3a7a; font-weight: 700; }
+  tr:nth-child(even) td { background: #f8fafd; }
+  .stats-box {
+    background: #e8f4ff;
+    border: 1px solid #b8daf0;
+    border-radius: 6px;
+    padding: 12px;
+    margin-top: 12px;
+  }
+  .timer-display {
+    font-family: "SF Mono", Menlo, monospace;
+    font-size: 28px;
+    font-weight: 700;
+    text-align: center;
+    color: #1a8a4a;
+    background: #1a2540;
+    padding: 12px;
+    border-radius: 8px;
+    margin: 8px 0;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Free Fall Lab Simulation</h1>
+  <div class="subtitle">Algebra-Based Mechanics — Measure the acceleration due to gravity g</div>
+
+  <!-- Setup card -->
+  <div class="card">
+    <div class="section-title">🎚️ Drop Tower Setup</div>
+    <div class="info">
+      Adjust the drop height, choose an object, then click <b>Drop!</b> A photogate at the bottom measures the time of fall electronically (no reaction-time error). Record at least 5 different heights for the analysis.
+    </div>
+  </div>
+
+  <div class="grid">
+    <!-- Left: controls -->
+    <div class="card">
+      <div class="section-title">Controls</div>
+
+      <div class="controls">
+        <div class="control">
+          <label>Drop height h <span class="value" id="hVal">1.00 m</span></label>
+          <input type="range" id="hSlider" min="0.20" max="2.50" step="0.05" value="1.00">
+        </div>
+
+        <div class="control">
+          <label>Object</label>
+          <select id="objSelect">
+            <option value="ball">Steel ball (negligible air resistance)</option>
+            <option value="paper">Paper ball (some air resistance)</option>
+          </select>
+        </div>
+
+        <div class="control">
+          <label>Location <span class="value" id="locVal">Earth (g = 9.81)</span></label>
+          <select id="locSelect">
+            <option value="9.81">Earth (g = 9.81 m/s²)</option>
+            <option value="9.78">Earth — equator (g = 9.78 m/s²)</option>
+            <option value="9.83">Earth — poles (g = 9.83 m/s²)</option>
+            <option value="1.62">Moon (g = 1.62 m/s²)</option>
+            <option value="3.71">Mars (g = 3.71 m/s²)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="readouts">
+        <div class="readout">
+          <div class="label">Drop height</div>
+          <div class="num" id="rHeight">1.00 m</div>
+        </div>
+        <div class="readout">
+          <div class="label">Predicted t = √(2h/g)</div>
+          <div class="num" id="rPredict">— s</div>
+        </div>
+      </div>
+
+      <div class="timer-display" id="timerDisplay">00.000 s</div>
+
+      <div class="button-row">
+        <button class="primary" id="dropBtn" onclick="dropObject()">⬇️ Drop!</button>
+        <button class="secondary" onclick="resetDrop()">↻ Reset</button>
+        <button class="primary" onclick="recordTrial()" id="recordBtn" disabled>💾 Record This Trial</button>
+      </div>
+
+      <div class="help">
+        <b>Procedure:</b><br>
+        1. Set the drop height with the slider.<br>
+        2. Click <b>Drop!</b> Watch the object fall and the photogate timer record t.<br>
+        3. Click <b>Record This Trial</b> to save this (h, t) point to your data table.<br>
+        4. Repeat for at least 5 different heights between 0.5 m and 2.5 m.
+      </div>
+    </div>
+
+    <!-- Right: visualization -->
+    <div class="card">
+      <div class="section-title">Drop Tower</div>
+      <canvas id="dropCanvas" width="500" height="650"></canvas>
+    </div>
+  </div>
+
+  <!-- Data and graph -->
+  <div class="grid" style="grid-template-columns:1fr 1fr;">
+    <div class="card">
+      <div class="section-title">📋 Data Table</div>
+      <table id="dataTable">
+        <thead>
+          <tr><th>#</th><th>h (m)</th><th>t (s)</th><th>t² (s²)</th></tr>
+        </thead>
+        <tbody id="dataBody">
+          <tr><td colspan="4" style="color:#888; font-style:italic;">No trials recorded yet.</td></tr>
+        </tbody>
+      </table>
+      <div class="button-row">
+        <button class="danger" onclick="clearData()">🗑 Clear Data</button>
+        <button class="secondary" onclick="exportCSV()">⬇ Download CSV</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">📈 h vs. t² Graph</div>
+      <canvas id="graphCanvas" width="500" height="380"></canvas>
+      <div class="stats-box" id="fitBox" style="display:none;">
+        <div style="font-weight:700; color:#1a3a7a; margin-bottom:8px;">Linear Fit:  h = (slope) × t²</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+          <div class="readout" style="border-left-color:#1a8a4a;">
+            <div class="label">Slope (m/s²)</div>
+            <div class="num" id="slopeVal">—</div>
+          </div>
+          <div class="readout" style="border-left-color:#d9544f;">
+            <div class="label">g = 2 × slope</div>
+            <div class="num" id="gVal">—</div>
+          </div>
+          <div class="readout">
+            <div class="label">Accepted g</div>
+            <div class="num" id="acceptVal">9.81 m/s²</div>
+          </div>
+          <div class="readout">
+            <div class="label">% Error</div>
+            <div class="num" id="errVal">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============ State ============
+let height = 1.00;
+let gAccepted = 9.81;
+let object = 'ball';
+let dropping = false;
+let dropY = 0;
+let dropStart = 0;
+let dropTime = null;       // measured (with photogate noise)
+let dropTimeShown = null;  // for display
+let lastPhotoTime = null;
+let trials = []; // {h, t}
+
+// ============ Elements ============
+const hSlider = document.getElementById('hSlider');
+const hVal = document.getElementById('hVal');
+const objSelect = document.getElementById('objSelect');
+const locSelect = document.getElementById('locSelect');
+const locVal = document.getElementById('locVal');
+const dropCanvas = document.getElementById('dropCanvas');
+const dctx = dropCanvas.getContext('2d');
+const graphCanvas = document.getElementById('graphCanvas');
+const gctx = graphCanvas.getContext('2d');
+const recordBtn = document.getElementById('recordBtn');
+const dropBtn = document.getElementById('dropBtn');
+
+// ============ Updates ============
+function updateLabels() {
+  height = parseFloat(hSlider.value);
+  gAccepted = parseFloat(locSelect.value);
+  object = objSelect.value;
+  hVal.textContent = height.toFixed(2) + ' m';
+  document.getElementById('rHeight').textContent = height.toFixed(2) + ' m';
+  const predicted = Math.sqrt(2 * height / gAccepted);
+  document.getElementById('rPredict').textContent = predicted.toFixed(3) + ' s';
+  // Update location label
+  const opt = locSelect.options[locSelect.selectedIndex];
+  locVal.textContent = opt.text.match(/^[^(]+/)[0].trim() + ' (g = ' + gAccepted + ')';
+  document.getElementById('acceptVal').textContent = gAccepted.toFixed(2) + ' m/s²';
+  if (!dropping) {
+    drawTower(0);
+  }
+  updateGraph();
+}
+hSlider.addEventListener('input', updateLabels);
+objSelect.addEventListener('change', updateLabels);
+locSelect.addEventListener('change', () => {
+  updateLabels();
+  // Recompute the % error vs the new accepted g if there's data
+  if (trials.length >= 2) updateGraph();
+});
+
+// ============ Physics ============
+function gaussian(sigma) {
+  const u1 = Math.random(), u2 = Math.random();
+  return sigma * Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+}
+
+function getTrueFallTime() {
+  // For a "ball": pure free fall t = sqrt(2h/g)
+  // For "paper ball": small drag effect (slightly longer than free-fall prediction)
+  const tFree = Math.sqrt(2 * height / gAccepted);
+  if (object === 'paper') {
+    // Tiny drag: roughly add 3-5% to fall time at small heights, more at large heights
+    return tFree * (1.04 + 0.02 * height);
+  }
+  return tFree;
+}
+
+// ============ Drop animation ============
+function dropObject() {
+  if (dropping) return;
+  dropping = true;
+  dropStart = performance.now();
+  dropY = 0;
+  dropTime = null;
+  dropTimeShown = null;
+  recordBtn.disabled = true;
+  dropBtn.disabled = true;
+  document.getElementById('timerDisplay').textContent = '00.000 s';
+  requestAnimationFrame(animateDrop);
+}
+
+function animateDrop(now) {
+  if (!dropping) return;
+  const elapsed = (now - dropStart) / 1000;
+  // Position (in meters) using true gravity
+  const yMeters = 0.5 * gAccepted * elapsed * elapsed;
+  if (yMeters >= height) {
+    // Hit the photogate at the bottom
+    dropY = height;
+    dropping = false;
+    // Photogate measurement: very precise, tiny ±0.002 s noise
+    const trueT = getTrueFallTime();
+    const measured = trueT + gaussian(0.003);
+    dropTime = Math.max(0, measured);
+    dropTimeShown = dropTime;
+    document.getElementById('timerDisplay').textContent = formatTime(dropTime);
+    recordBtn.disabled = false;
+    dropBtn.disabled = false;
+    drawTower(dropY);
+    return;
+  }
+  dropY = yMeters;
+  // Show timer ticking up (in real time of the animation)
+  document.getElementById('timerDisplay').textContent = formatTime(elapsed);
+  drawTower(dropY);
+  requestAnimationFrame(animateDrop);
+}
+
+function formatTime(t) {
+  // mm.mmm format with three decimal places
+  return t.toFixed(3) + ' s';
+}
+
+function resetDrop() {
+  dropping = false;
+  dropY = 0;
+  dropTime = null;
+  dropTimeShown = null;
+  document.getElementById('timerDisplay').textContent = '00.000 s';
+  recordBtn.disabled = true;
+  dropBtn.disabled = false;
+  drawTower(0);
+}
+
+// ============ Drawing ============
+function drawTower(yMeters) {
+  const W = dropCanvas.width, H = dropCanvas.height;
+  dctx.clearRect(0, 0, W, H);
+
+  // Title
+  dctx.fillStyle = '#1a3a7a';
+  dctx.font = 'bold 13px sans-serif';
+  dctx.textAlign = 'left';
+  dctx.fillText('Drop Tower (with photogate timer)', 12, 22);
+
+  // Tower frame
+  const margin = 60;
+  const towerTop = 50;
+  const towerBottom = H - 60;
+  const towerH = towerBottom - towerTop; // pixels
+  // Pixels per meter — scale so 2.5 m fills the tower
+  const pxPerM = towerH / 2.7;
+
+  // Tower side rails
+  dctx.strokeStyle = '#5a6a85';
+  dctx.lineWidth = 2;
+  dctx.beginPath();
+  dctx.moveTo(margin, towerTop);
+  dctx.lineTo(margin, towerBottom);
+  dctx.moveTo(W - margin, towerTop);
+  dctx.lineTo(W - margin, towerBottom);
+  dctx.stroke();
+
+  // Top mounting bracket
+  dctx.fillStyle = '#3a4a6a';
+  dctx.fillRect(margin - 8, towerTop - 16, W - 2 * margin + 16, 16);
+
+  // Release mechanism
+  const releaseY = towerBottom - height * pxPerM;
+  dctx.fillStyle = '#7a2522';
+  dctx.fillRect(margin + 4, releaseY - 16, 32, 12);
+  dctx.fillStyle = '#1a2540';
+  dctx.font = '10px sans-serif';
+  dctx.textAlign = 'left';
+  dctx.fillText('Release', margin + 40, releaseY - 6);
+
+  // Object position
+  const ballY = releaseY + yMeters * pxPerM;
+  const ballX = margin + 20;
+
+  // Trail
+  if (yMeters > 0.01) {
+    dctx.strokeStyle = 'rgba(217, 84, 79, 0.3)';
+    dctx.lineWidth = 2;
+    dctx.beginPath();
+    dctx.moveTo(ballX, releaseY);
+    dctx.lineTo(ballX, ballY);
+    dctx.stroke();
+  }
+
+  // The object itself
+  if (object === 'ball') {
+    dctx.fillStyle = '#3a4a6a';
+    dctx.strokeStyle = '#1a2540';
+    dctx.lineWidth = 1;
+    dctx.beginPath();
+    dctx.arc(ballX, ballY, 10, 0, Math.PI * 2);
+    dctx.fill();
+    dctx.stroke();
+    // Highlight
+    dctx.fillStyle = 'rgba(255,255,255,0.4)';
+    dctx.beginPath();
+    dctx.arc(ballX - 3, ballY - 3, 3, 0, Math.PI * 2);
+    dctx.fill();
+  } else {
+    dctx.fillStyle = '#f0d090';
+    dctx.strokeStyle = '#7a5a20';
+    dctx.lineWidth = 1;
+    dctx.beginPath();
+    dctx.moveTo(ballX - 8, ballY - 6);
+    dctx.lineTo(ballX + 9, ballY - 8);
+    dctx.lineTo(ballX + 7, ballY + 6);
+    dctx.lineTo(ballX - 9, ballY + 8);
+    dctx.lineTo(ballX - 6, ballY);
+    dctx.closePath();
+    dctx.fill();
+    dctx.stroke();
+  }
+
+  // Photogate at the bottom (where the object is caught)
+  const gateY = releaseY + height * pxPerM;
+  dctx.fillStyle = '#d9544f';
+  dctx.fillRect(margin + 4, gateY - 4, 32, 4);
+  dctx.fillRect(W - margin - 36, gateY - 4, 32, 4);
+  dctx.strokeStyle = '#d9544f';
+  dctx.setLineDash([4, 4]);
+  dctx.lineWidth = 1;
+  dctx.beginPath();
+  dctx.moveTo(margin + 36, gateY - 2);
+  dctx.lineTo(W - margin - 36, gateY - 2);
+  dctx.stroke();
+  dctx.setLineDash([]);
+  dctx.fillStyle = '#d9544f';
+  dctx.font = 'bold 10px sans-serif';
+  dctx.textAlign = 'left';
+  dctx.fillText('📡 Photogate', W - margin - 80, gateY + 18);
+
+  // Floor
+  dctx.fillStyle = '#5a6a85';
+  dctx.fillRect(margin - 12, towerBottom, W - 2 * margin + 24, 6);
+
+  // Height ruler on the right
+  dctx.strokeStyle = '#1a2540';
+  dctx.lineWidth = 1;
+  dctx.fillStyle = '#1a2540';
+  dctx.font = '10px sans-serif';
+  dctx.textAlign = 'right';
+  for (let m = 0; m <= 2.5; m += 0.5) {
+    const y = gateY - m * pxPerM;
+    if (y < towerTop || y > towerBottom) continue;
+    dctx.beginPath();
+    dctx.moveTo(W - margin - 8, y);
+    dctx.lineTo(W - margin, y);
+    dctx.stroke();
+    dctx.fillText(m.toFixed(1) + ' m', W - margin - 12, y + 4);
+  }
+
+  // Height indicator label
+  dctx.fillStyle = '#2a5db0';
+  dctx.font = 'bold 12px sans-serif';
+  dctx.textAlign = 'center';
+  dctx.fillText('h = ' + height.toFixed(2) + ' m', W / 2, towerTop - 30);
+
+  // Arrow showing height
+  dctx.strokeStyle = '#2a5db0';
+  dctx.lineWidth = 2;
+  const ax = W / 2;
+  dctx.beginPath();
+  dctx.moveTo(ax, releaseY);
+  dctx.lineTo(ax, gateY);
+  dctx.stroke();
+  // Arrowheads
+  [releaseY, gateY].forEach((y, i) => {
+    const dir = i === 0 ? -1 : 1;
+    dctx.beginPath();
+    dctx.moveTo(ax, y);
+    dctx.lineTo(ax - 5, y - dir * 8);
+    dctx.lineTo(ax + 5, y - dir * 8);
+    dctx.closePath();
+    dctx.fillStyle = '#2a5db0';
+    dctx.fill();
+  });
+}
+
+// ============ Recording ============
+function recordTrial() {
+  if (dropTime === null) return;
+  trials.push({ h: height, t: dropTime });
+  renderTable();
+  updateGraph();
+  recordBtn.disabled = true;
+}
+
+function clearData() {
+  trials = [];
+  renderTable();
+  updateGraph();
+}
+
+function renderTable() {
+  const tbody = document.getElementById('dataBody');
+  if (trials.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" style="color:#888; font-style:italic;">No trials recorded yet.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = trials.map((tr, i) => {
+    const t2 = tr.t * tr.t;
+    return `<tr><td>${i + 1}</td><td>${tr.h.toFixed(2)}</td><td>${tr.t.toFixed(3)}</td><td>${t2.toFixed(4)}</td></tr>`;
+  }).join('');
+}
+
+function exportCSV() {
+  if (trials.length === 0) { alert('No data to export.'); return; }
+  let csv = 'Trial,h (m),t (s),t^2 (s^2)\n';
+  trials.forEach((tr, i) => csv += `${i + 1},${tr.h.toFixed(2)},${tr.t.toFixed(3)},${(tr.t * tr.t).toFixed(4)}\n`);
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'free_fall_data.csv';
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+// ============ Graph (h vs t²) ============
+function updateGraph() {
+  const W = graphCanvas.width, H = graphCanvas.height;
+  gctx.clearRect(0, 0, W, H);
+
+  const padL = 50, padR = 18, padT = 22, padB = 50;
+  const plotW = W - padL - padR;
+  const plotH = H - padT - padB;
+
+  // Axes ranges
+  let xMax = 0.6, yMax = 2.5;
+  if (trials.length > 0) {
+    const xs = trials.map(tr => tr.t * tr.t);
+    const ys = trials.map(tr => tr.h);
+    xMax = Math.max(0.1, Math.max(...xs) * 1.1);
+    yMax = Math.max(0.5, Math.max(...ys) * 1.1);
+  }
+
+  // Title
+  gctx.fillStyle = '#1a3a7a';
+  gctx.font = 'bold 12px sans-serif';
+  gctx.textAlign = 'left';
+  gctx.fillText('Height vs. Time-squared (slope = g/2)', padL, 16);
+
+  // Axes
+  gctx.strokeStyle = '#1a2540';
+  gctx.lineWidth = 1.5;
+  gctx.beginPath();
+  gctx.moveTo(padL, padT);
+  gctx.lineTo(padL, padT + plotH);
+  gctx.lineTo(padL + plotW, padT + plotH);
+  gctx.stroke();
+
+  // Grid + tick labels
+  gctx.strokeStyle = '#e5e9f2';
+  gctx.lineWidth = 1;
+  gctx.fillStyle = '#5a6a85';
+  gctx.font = '10px sans-serif';
+  gctx.textAlign = 'right';
+  for (let i = 0; i <= 5; i++) {
+    const yVal = (yMax * i) / 5;
+    const py = padT + plotH - (i / 5) * plotH;
+    gctx.beginPath();
+    gctx.moveTo(padL, py);
+    gctx.lineTo(padL + plotW, py);
+    gctx.stroke();
+    gctx.fillText(yVal.toFixed(2), padL - 6, py + 3);
+  }
+  gctx.textAlign = 'center';
+  for (let i = 0; i <= 5; i++) {
+    const xVal = (xMax * i) / 5;
+    const px = padL + (i / 5) * plotW;
+    gctx.beginPath();
+    gctx.moveTo(px, padT);
+    gctx.lineTo(px, padT + plotH);
+    gctx.stroke();
+    gctx.fillText(xVal.toFixed(2), px, padT + plotH + 14);
+  }
+
+  // Axis labels
+  gctx.fillStyle = '#1a2540';
+  gctx.font = 'bold 11px sans-serif';
+  gctx.fillText('t² (s²)', padL + plotW / 2, H - 14);
+  gctx.save();
+  gctx.translate(14, padT + plotH / 2);
+  gctx.rotate(-Math.PI / 2);
+  gctx.fillText('h (m)', 0, 0);
+  gctx.restore();
+
+  // Plot points
+  trials.forEach(tr => {
+    const x = tr.t * tr.t;
+    const px = padL + (x / xMax) * plotW;
+    const py = padT + plotH - (tr.h / yMax) * plotH;
+    gctx.fillStyle = '#2a5db0';
+    gctx.strokeStyle = '#1a3a7a';
+    gctx.lineWidth = 1.5;
+    gctx.beginPath();
+    gctx.arc(px, py, 5, 0, Math.PI * 2);
+    gctx.fill();
+    gctx.stroke();
+  });
+
+  // Linear fit (forced through origin: h = m * t²)
+  if (trials.length >= 2) {
+    let sumXX = 0, sumXY = 0;
+    trials.forEach(tr => {
+      const x = tr.t * tr.t;
+      sumXX += x * x;
+      sumXY += x * tr.h;
+    });
+    const slope = sumXX > 0 ? sumXY / sumXX : 0;
+    const gMeasured = 2 * slope;
+    const pctErr = Math.abs(gMeasured - gAccepted) / gAccepted * 100;
+
+    // Draw fit line
+    gctx.strokeStyle = '#1a8a4a';
+    gctx.lineWidth = 2;
+    gctx.beginPath();
+    gctx.moveTo(padL, padT + plotH);
+    gctx.lineTo(padL + plotW, padT + plotH - (slope * xMax / yMax) * plotH);
+    gctx.stroke();
+
+    document.getElementById('fitBox').style.display = 'block';
+    document.getElementById('slopeVal').textContent = slope.toFixed(3) + ' m/s²';
+    document.getElementById('gVal').textContent = gMeasured.toFixed(2) + ' m/s²';
+    document.getElementById('errVal').textContent = pctErr.toFixed(2) + ' %';
+  } else {
+    document.getElementById('fitBox').style.display = 'none';
+  }
+}
+
+// ============ Init ============
+updateLabels();
+drawTower(0);
+updateGraph();
+</script>
+
+</body>
+</html>

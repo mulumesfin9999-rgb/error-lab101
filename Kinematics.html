@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kinematics Lab Simulation — Algebra-Based Mechanics</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    margin: 0;
+    padding: 16px;
+    background: #f4f6fa;
+    color: #1a2540;
+  }
+  h1 {
+    margin: 0 0 4px 0;
+    font-size: 22px;
+    color: #1a3a7a;
+  }
+  .subtitle {
+    color: #5a6a85;
+    font-size: 14px;
+    margin-bottom: 16px;
+  }
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .card {
+    background: white;
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 800px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+  .controls {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .control {
+    display: flex;
+    flex-direction: column;
+  }
+  .control label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1a3a7a;
+    margin-bottom: 4px;
+  }
+  .control .value {
+    font-family: "SF Mono", Menlo, monospace;
+    font-size: 13px;
+    color: #2a5db0;
+    font-weight: 600;
+  }
+  input[type="range"] {
+    width: 100%;
+    accent-color: #2a5db0;
+  }
+  button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  button.primary { background: #2a5db0; color: white; }
+  button.primary:hover { background: #1a4590; }
+  button.secondary { background: #e0e6f0; color: #1a3a7a; }
+  button.secondary:hover { background: #c8d2e4; }
+  button.danger { background: #d9544f; color: white; }
+  button.danger:hover { background: #b53a35; }
+  .button-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+  canvas {
+    width: 100%;
+    height: auto;
+    border: 1px solid #d8dde8;
+    border-radius: 6px;
+    background: white;
+    display: block;
+  }
+  .readouts {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-top: 12px;
+  }
+  @media (max-width: 600px) {
+    .readouts { grid-template-columns: repeat(2, 1fr); }
+  }
+  .readout {
+    background: #f4f6fa;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border-left: 3px solid #2a5db0;
+  }
+  .readout .label {
+    font-size: 11px;
+    color: #5a6a85;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .readout .num {
+    font-family: "SF Mono", Menlo, monospace;
+    font-size: 16px;
+    font-weight: 700;
+    color: #1a2540;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-top: 8px;
+  }
+  th, td {
+    padding: 6px 8px;
+    border: 1px solid #d8dde8;
+    text-align: center;
+    font-family: "SF Mono", Menlo, monospace;
+  }
+  th {
+    background: #d9e2f3;
+    color: #1a3a7a;
+    font-weight: 700;
+  }
+  tr:nth-child(even) td { background: #f8fafd; }
+  .section-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1a3a7a;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid #d9e2f3;
+  }
+  .info {
+    background: #fff8e1;
+    border-left: 3px solid #f0b800;
+    padding: 10px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    margin-bottom: 12px;
+    color: #5a4a00;
+  }
+  .preset-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+  .preset-row button {
+    padding: 6px 10px;
+    font-size: 12px;
+    background: #e8edf6;
+    color: #1a3a7a;
+    border: 1px solid #c8d2e4;
+  }
+  .preset-row button:hover { background: #d6dfee; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Kinematics Lab Simulation</h1>
+  <div class="subtitle">Algebra-Based Mechanics — Investigate position, velocity, and acceleration in 1D motion</div>
+
+  <!-- Simulation Card -->
+  <div class="card">
+    <div class="section-title">🚗 Cart on a Track</div>
+    <div class="info">
+      Set the initial velocity and acceleration, then press <b>Start</b>. Watch the cart move along the 10-meter track. Use <b>Record</b> to capture data points for your lab report.
+    </div>
+
+    <div class="preset-row">
+      <button onclick="loadPreset('rest')">Preset: Released from rest</button>
+      <button onclick="loadPreset('constant')">Preset: Constant velocity</button>
+      <button onclick="loadPreset('decel')">Preset: Decelerating</button>
+      <button onclick="loadPreset('reverse')">Preset: Reversing motion</button>
+    </div>
+
+    <div class="controls">
+      <div class="control">
+        <label>Initial velocity v₀ <span class="value" id="v0val">0.00 m/s</span></label>
+        <input type="range" id="v0" min="-5" max="5" step="0.1" value="0">
+      </div>
+      <div class="control">
+        <label>Acceleration a <span class="value" id="aval">1.00 m/s²</span></label>
+        <input type="range" id="a" min="-3" max="3" step="0.1" value="1">
+      </div>
+      <div class="control">
+        <label>Initial position x₀ <span class="value" id="x0val">0.00 m</span></label>
+        <input type="range" id="x0" min="0" max="5" step="0.1" value="0">
+      </div>
+    </div>
+
+    <canvas id="track" width="1100" height="160"></canvas>
+
+    <div class="readouts">
+      <div class="readout"><div class="label">Time t</div><div class="num" id="tOut">0.00 s</div></div>
+      <div class="readout"><div class="label">Position x</div><div class="num" id="xOut">0.00 m</div></div>
+      <div class="readout"><div class="label">Velocity v</div><div class="num" id="vOut">0.00 m/s</div></div>
+      <div class="readout"><div class="label">Acceleration a</div><div class="num" id="aOut">0.00 m/s²</div></div>
+    </div>
+
+    <div class="button-row">
+      <button class="primary" id="startBtn" onclick="toggleRun()">▶ Start</button>
+      <button class="secondary" onclick="resetSim()">↻ Reset</button>
+      <button class="secondary" onclick="recordPoint()">📍 Record Data Point</button>
+      <button class="danger" onclick="clearData()">🗑 Clear Data</button>
+    </div>
+  </div>
+
+  <!-- Graphs Card -->
+  <div class="grid">
+    <div class="card">
+      <div class="section-title">📈 Position vs. Time</div>
+      <canvas id="xtGraph" width="500" height="320"></canvas>
+    </div>
+    <div class="card">
+      <div class="section-title">📊 Velocity vs. Time</div>
+      <canvas id="vtGraph" width="500" height="320"></canvas>
+    </div>
+  </div>
+
+  <!-- Data Table Card -->
+  <div class="card">
+    <div class="section-title">📋 Recorded Data</div>
+    <div class="info">
+      Click <b>Record Data Point</b> while the simulation runs to capture (t, x, v) values. Use this data to answer the lab questions on your handout.
+    </div>
+    <div id="dataWrap">
+      <table id="dataTable">
+        <thead>
+          <tr><th>#</th><th>t (s)</th><th>x (m)</th><th>v (m/s)</th><th>a (m/s²)</th></tr>
+        </thead>
+        <tbody id="dataBody">
+          <tr><td colspan="5" style="color:#888; font-style:italic;">No data recorded yet.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="button-row">
+      <button class="secondary" onclick="exportCSV()">⬇ Download Data (CSV)</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============ Simulation State ============
+const TRACK_LENGTH = 10; // meters
+let t = 0, x = 0, v = 0;
+let v0 = 0, a = 1, x0 = 0;
+let running = false;
+let lastTime = null;
+let dataPoints = [];
+let trajectory = []; // {t, x, v}
+
+// ============ DOM ============
+const v0Slider = document.getElementById('v0');
+const aSlider = document.getElementById('a');
+const x0Slider = document.getElementById('x0');
+const v0Val = document.getElementById('v0val');
+const aVal = document.getElementById('aval');
+const x0Val = document.getElementById('x0val');
+const startBtn = document.getElementById('startBtn');
+
+const trackCanvas = document.getElementById('track');
+const tctx = trackCanvas.getContext('2d');
+const xtCanvas = document.getElementById('xtGraph');
+const xtctx = xtCanvas.getContext('2d');
+const vtCanvas = document.getElementById('vtGraph');
+const vtctx = vtCanvas.getContext('2d');
+
+// ============ Slider handlers ============
+function updateLabels() {
+  v0 = parseFloat(v0Slider.value);
+  a = parseFloat(aSlider.value);
+  x0 = parseFloat(x0Slider.value);
+  v0Val.textContent = v0.toFixed(2) + ' m/s';
+  aVal.textContent = a.toFixed(2) + ' m/s²';
+  x0Val.textContent = x0.toFixed(2) + ' m';
+  if (!running) {
+    t = 0; v = v0; x = x0;
+    trajectory = [{t:0, x:x, v:v}];
+    updateReadouts();
+    drawAll();
+  }
+}
+v0Slider.addEventListener('input', updateLabels);
+aSlider.addEventListener('input', updateLabels);
+x0Slider.addEventListener('input', updateLabels);
+
+// ============ Presets ============
+function loadPreset(name) {
+  if (name === 'rest')      { v0Slider.value = 0;   aSlider.value = 1.0; x0Slider.value = 0; }
+  if (name === 'constant')  { v0Slider.value = 2.0; aSlider.value = 0;   x0Slider.value = 0; }
+  if (name === 'decel')     { v0Slider.value = 4.0; aSlider.value = -1.0; x0Slider.value = 0; }
+  if (name === 'reverse')   { v0Slider.value = 3.0; aSlider.value = -1.5; x0Slider.value = 1; }
+  resetSim();
+  updateLabels();
+}
+
+// ============ Animation Loop ============
+function step(now) {
+  if (!running) return;
+  if (lastTime === null) lastTime = now;
+  const dt = Math.min(0.05, (now - lastTime) / 1000);
+  lastTime = now;
+
+  t += dt;
+  v = v0 + a * t;
+  x = x0 + v0 * t + 0.5 * a * t * t;
+
+  // Stop when off track
+  if (x > TRACK_LENGTH) { x = TRACK_LENGTH; running = false; startBtn.textContent = '▶ Start'; }
+  if (x < 0) { x = 0; running = false; startBtn.textContent = '▶ Start'; }
+  if (t > 20) { running = false; startBtn.textContent = '▶ Start'; }
+
+  trajectory.push({t, x, v});
+  updateReadouts();
+  drawAll();
+
+  if (running) requestAnimationFrame(step);
+}
+
+function toggleRun() {
+  if (running) {
+    running = false;
+    startBtn.textContent = '▶ Resume';
+  } else {
+    running = true;
+    lastTime = null;
+    startBtn.textContent = '⏸ Pause';
+    requestAnimationFrame(step);
+  }
+}
+
+function resetSim() {
+  running = false;
+  startBtn.textContent = '▶ Start';
+  t = 0; v = v0; x = x0;
+  trajectory = [{t:0, x:x, v:v}];
+  updateReadouts();
+  drawAll();
+}
+
+// ============ Readouts ============
+function updateReadouts() {
+  document.getElementById('tOut').textContent = t.toFixed(2) + ' s';
+  document.getElementById('xOut').textContent = x.toFixed(2) + ' m';
+  document.getElementById('vOut').textContent = v.toFixed(2) + ' m/s';
+  document.getElementById('aOut').textContent = a.toFixed(2) + ' m/s²';
+}
+
+// ============ Drawing ============
+function drawTrack() {
+  const W = trackCanvas.width, H = trackCanvas.height;
+  tctx.clearRect(0, 0, W, H);
+
+  // Track
+  const margin = 40;
+  const trackY = H / 2 + 20;
+  const trackW = W - 2 * margin;
+  tctx.fillStyle = '#3a4a6a';
+  tctx.fillRect(margin, trackY, trackW, 8);
+
+  // Tick marks (every meter)
+  tctx.strokeStyle = '#1a2540';
+  tctx.lineWidth = 1;
+  tctx.fillStyle = '#1a2540';
+  tctx.font = '11px sans-serif';
+  tctx.textAlign = 'center';
+  for (let i = 0; i <= TRACK_LENGTH; i++) {
+    const px = margin + (i / TRACK_LENGTH) * trackW;
+    tctx.beginPath();
+    tctx.moveTo(px, trackY - 4);
+    tctx.lineTo(px, trackY + 12);
+    tctx.stroke();
+    tctx.fillText(i + ' m', px, trackY + 26);
+  }
+
+  // Cart
+  const cartX = margin + (x / TRACK_LENGTH) * trackW;
+  const cartY = trackY - 28;
+  // body
+  tctx.fillStyle = '#d9544f';
+  tctx.fillRect(cartX - 25, cartY, 50, 24);
+  tctx.strokeStyle = '#7a2522';
+  tctx.lineWidth = 2;
+  tctx.strokeRect(cartX - 25, cartY, 50, 24);
+  // wheels
+  tctx.fillStyle = '#1a2540';
+  tctx.beginPath(); tctx.arc(cartX - 15, cartY + 24, 5, 0, Math.PI * 2); tctx.fill();
+  tctx.beginPath(); tctx.arc(cartX + 15, cartY + 24, 5, 0, Math.PI * 2); tctx.fill();
+
+  // Velocity arrow
+  if (Math.abs(v) > 0.05) {
+    const arrLen = Math.min(80, Math.abs(v) * 15);
+    const dir = Math.sign(v);
+    tctx.strokeStyle = '#2a5db0';
+    tctx.fillStyle = '#2a5db0';
+    tctx.lineWidth = 3;
+    const startX = cartX;
+    const endX = cartX + dir * arrLen;
+    const arrY = cartY + 12;
+    tctx.beginPath();
+    tctx.moveTo(startX, arrY);
+    tctx.lineTo(endX, arrY);
+    tctx.stroke();
+    // arrow head
+    tctx.beginPath();
+    tctx.moveTo(endX, arrY);
+    tctx.lineTo(endX - dir * 8, arrY - 5);
+    tctx.lineTo(endX - dir * 8, arrY + 5);
+    tctx.closePath();
+    tctx.fill();
+  }
+
+  // Title
+  tctx.fillStyle = '#1a3a7a';
+  tctx.font = 'bold 13px sans-serif';
+  tctx.textAlign = 'left';
+  tctx.fillText('1D Track (0 to 10 m)', margin, 20);
+}
+
+function drawGraph(ctx, canvas, dataKey, yLabel, color) {
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  const padL = 50, padR = 18, padT = 18, padB = 40;
+  const plotW = W - padL - padR;
+  const plotH = H - padT - padB;
+
+  // Determine ranges
+  let tMax = 10, yMin = 0, yMax = 10;
+  if (trajectory.length > 1) {
+    tMax = Math.max(5, Math.ceil(trajectory[trajectory.length - 1].t));
+    const ys = trajectory.map(p => p[dataKey]);
+    yMin = Math.min(0, Math.floor(Math.min(...ys)));
+    yMax = Math.max(1, Math.ceil(Math.max(...ys)));
+    if (yMax === yMin) yMax = yMin + 1;
+  }
+
+  // Axes
+  ctx.strokeStyle = '#1a2540';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(padL, padT);
+  ctx.lineTo(padL, padT + plotH);
+  ctx.lineTo(padL + plotW, padT + plotH);
+  ctx.stroke();
+
+  // Grid + labels
+  ctx.strokeStyle = '#e5e9f2';
+  ctx.lineWidth = 1;
+  ctx.fillStyle = '#5a6a85';
+  ctx.font = '11px sans-serif';
+  ctx.textAlign = 'right';
+  for (let i = 0; i <= 5; i++) {
+    const yVal = yMin + (yMax - yMin) * (i / 5);
+    const py = padT + plotH - (i / 5) * plotH;
+    ctx.beginPath();
+    ctx.moveTo(padL, py);
+    ctx.lineTo(padL + plotW, py);
+    ctx.stroke();
+    ctx.fillText(yVal.toFixed(1), padL - 6, py + 3);
+  }
+  ctx.textAlign = 'center';
+  for (let i = 0; i <= 5; i++) {
+    const tVal = (tMax * i) / 5;
+    const px = padL + (i / 5) * plotW;
+    ctx.beginPath();
+    ctx.moveTo(px, padT);
+    ctx.lineTo(px, padT + plotH);
+    ctx.stroke();
+    ctx.fillText(tVal.toFixed(1), px, padT + plotH + 16);
+  }
+
+  // Axis labels
+  ctx.fillStyle = '#1a2540';
+  ctx.font = 'bold 12px sans-serif';
+  ctx.fillText('t (s)', padL + plotW / 2, H - 8);
+  ctx.save();
+  ctx.translate(14, padT + plotH / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillText(yLabel, 0, 0);
+  ctx.restore();
+
+  // Plot trajectory
+  if (trajectory.length > 1) {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    trajectory.forEach((p, i) => {
+      const px = padL + (p.t / tMax) * plotW;
+      const py = padT + plotH - ((p[dataKey] - yMin) / (yMax - yMin)) * plotH;
+      if (i === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    });
+    ctx.stroke();
+  }
+
+  // Plot recorded points
+  ctx.fillStyle = '#f0b800';
+  ctx.strokeStyle = '#7a5e00';
+  ctx.lineWidth = 1.5;
+  dataPoints.forEach(p => {
+    if (p.t > tMax) return;
+    const px = padL + (p.t / tMax) * plotW;
+    const py = padT + plotH - ((p[dataKey] - yMin) / (yMax - yMin)) * plotH;
+    ctx.beginPath();
+    ctx.arc(px, py, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+  });
+}
+
+function drawAll() {
+  drawTrack();
+  drawGraph(xtctx, xtCanvas, 'x', 'x (m)', '#2a5db0');
+  drawGraph(vtctx, vtCanvas, 'v', 'v (m/s)', '#1a8a4a');
+}
+
+// ============ Data recording ============
+function recordPoint() {
+  dataPoints.push({ t: t, x: x, v: v, a: a });
+  renderTable();
+  drawAll();
+}
+
+function clearData() {
+  dataPoints = [];
+  renderTable();
+  drawAll();
+}
+
+function renderTable() {
+  const tbody = document.getElementById('dataBody');
+  if (dataPoints.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" style="color:#888; font-style:italic;">No data recorded yet.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = dataPoints.map((p, i) =>
+    `<tr><td>${i + 1}</td><td>${p.t.toFixed(2)}</td><td>${p.x.toFixed(2)}</td><td>${p.v.toFixed(2)}</td><td>${p.a.toFixed(2)}</td></tr>`
+  ).join('');
+}
+
+function exportCSV() {
+  if (dataPoints.length === 0) {
+    alert('No data to export. Click "Record Data Point" while the simulation runs to collect data.');
+    return;
+  }
+  let csv = 'Trial,t (s),x (m),v (m/s),a (m/s^2)\n';
+  dataPoints.forEach((p, i) => {
+    csv += `${i + 1},${p.t.toFixed(3)},${p.x.toFixed(3)},${p.v.toFixed(3)},${p.a.toFixed(3)}\n`;
+  });
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'kinematics_data.csv';
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+// ============ Init ============
+updateLabels();
+drawAll();
+</script>
+
+</body>
+</html>
