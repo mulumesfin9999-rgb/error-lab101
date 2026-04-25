@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Error Analysis Lab Simulation — Algebra-Based Mechanics</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    margin: 0;
+    padding: 16px;
+    background: #f4f6fa;
+    color: #1a2540;
+  }
+  h1 {
+    margin: 0 0 4px 0;
+    font-size: 22px;
+    color: #1a3a7a;
+  }
+  .subtitle {
+    color: #5a6a85;
+    font-size: 14px;
+    margin-bottom: 16px;
+  }
+  .container { max-width: 1200px; margin: 0 auto; }
+  .card {
+    background: white;
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }
+  .section-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1a3a7a;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid #d9e2f3;
+  }
+  .info {
+    background: #fff8e1;
+    border-left: 3px solid #f0b800;
+    padding: 10px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    margin-bottom: 12px;
+    color: #5a4a00;
+  }
+  .controls {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .control { display: flex; flex-direction: column; }
+  .control label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1a3a7a;
+    margin-bottom: 4px;
+  }
+  .control .value {
+    font-family: "SF Mono", Menlo, monospace;
+    font-size: 13px;
+    color: #2a5db0;
+    font-weight: 600;
+  }
+  input[type="range"] { width: 100%; accent-color: #2a5db0; }
+  button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  button.primary { background: #2a5db0; color: white; }
+  button.primary:hover { background: #1a4590; }
+  button.secondary { background: #e0e6f0; color: #1a3a7a; }
+  button.secondary:hover { background: #c8d2e4; }
+  button.danger { background: #d9544f; color: white; }
+  button.danger:hover { background: #b53a35; }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  .button-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+  canvas {
+    width: 100%;
+    height: auto;
+    border: 1px solid #d8dde8;
+    border-radius: 6px;
+    background: white;
+    display: block;
+  }
+  .readouts {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-top: 12px;
+  }
+  @media (max-width: 600px) { .readouts { grid-template-columns: repeat(2, 1fr); } }
+  .readout {
+    background: #f4f6fa;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border-left: 3px solid #2a5db0;
+  }
+  .readout .label {
+    font-size: 11px;
+    color: #5a6a85;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .readout .num {
+    font-family: "SF Mono", Menlo, monospace;
+    font-size: 16px;
+    font-weight: 700;
+    color: #1a2540;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-top: 8px;
+  }
+  th, td {
+    padding: 6px 8px;
+    border: 1px solid #d8dde8;
+    text-align: center;
+    font-family: "SF Mono", Menlo, monospace;
+  }
+  th {
+    background: #d9e2f3;
+    color: #1a3a7a;
+    font-weight: 700;
+  }
+  tr:nth-child(even) td { background: #f8fafd; }
+  .stats-box {
+    background: #e8f4ff;
+    border: 1px solid #b8daf0;
+    border-radius: 6px;
+    padding: 12px;
+    margin-top: 12px;
+  }
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 10px;
+  }
+  .stat-item {
+    background: white;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border-left: 3px solid #1a8a4a;
+  }
+  .stat-item .label {
+    font-size: 11px;
+    color: #5a6a85;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .stat-item .num {
+    font-family: "SF Mono", Menlo, monospace;
+    font-size: 15px;
+    font-weight: 700;
+    color: #1a2540;
+  }
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 12px;
+    border-bottom: 2px solid #d9e2f3;
+  }
+  .tab {
+    padding: 8px 16px;
+    background: none;
+    border: none;
+    font-size: 14px;
+    font-weight: 600;
+    color: #5a6a85;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+  }
+  .tab.active { color: #1a3a7a; border-bottom-color: #2a5db0; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+  .timer-display {
+    font-family: "SF Mono", Menlo, monospace;
+    font-size: 36px;
+    font-weight: 700;
+    text-align: center;
+    color: #2a5db0;
+    background: #f4f6fa;
+    padding: 16px;
+    border-radius: 8px;
+    margin: 12px 0;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Error Analysis Lab Simulation</h1>
+  <div class="subtitle">Algebra-Based Mechanics — Statistical analysis of repeated measurements</div>
+
+  <!-- Tab navigation -->
+  <div class="card">
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('pendulum')">Part A: Pendulum Timing</button>
+      <button class="tab" onclick="switchTab('caliper')">Part B: Caliper Measurement</button>
+    </div>
+
+    <!-- ============ PART A: Pendulum Timing ============ -->
+    <div class="panel active" id="pendulum">
+      <div class="info">
+        <b>Goal:</b> Measure the period of a pendulum 10 times using a virtual stopwatch with realistic human reaction time. Use the data to calculate the mean, standard deviation, and standard error of the mean.
+      </div>
+
+      <div class="controls">
+        <div class="control">
+          <label>Pendulum length L <span class="value" id="lenVal">1.00 m</span></label>
+          <input type="range" id="lenSlider" min="0.30" max="2.00" step="0.05" value="1.00">
+        </div>
+        <div class="control">
+          <label>Reaction time variability <span class="value" id="rxnVal">±0.15 s</span></label>
+          <input type="range" id="rxnSlider" min="0.05" max="0.30" step="0.01" value="0.15">
+        </div>
+      </div>
+
+      <canvas id="pendulumCanvas" width="700" height="280"></canvas>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin: 12px 0;">
+        <div class="readout" style="border-left-color:#5a6a85;">
+          <div class="label">Time for 10 cycles (10T)</div>
+          <div class="num" id="timerDisplay" style="font-size:24px;">0.00 s</div>
+        </div>
+        <div class="readout" style="border-left-color:#1a8a4a;">
+          <div class="label">→ Period T = 10T / 10</div>
+          <div class="num" id="periodDisplay" style="font-size:24px;">— s</div>
+        </div>
+      </div>
+
+      <div class="button-row">
+        <button class="primary" id="startTimerBtn" onclick="handleTimerClick()">▶ Start Timer</button>
+        <button class="secondary" onclick="resetTimer()">↻ Reset Timer</button>
+        <button class="danger" onclick="clearPendulumData()">🗑 Clear All Data</button>
+      </div>
+
+      <div class="info" style="margin-top: 12px;">
+        <b>Procedure:</b> To reduce the effect of reaction-time error, you will time <b>10 full cycles</b> and divide by 10 to get one period.<br>
+        ① Click <b>Start Timer</b> as the bob passes the lowest point of its swing. Count silently: <i>"zero"</i> at start.<br>
+        ② Each time the bob returns to the same point and direction, count: <i>one, two, ... ten</i>.<br>
+        ③ Click <b>Stop Timer</b> on the count of ten. The simulator will automatically divide by 10 to give you one period.
+      </div>
+
+      <table id="pendulumTable">
+        <thead>
+          <tr><th>Trial</th><th>Time for 10 cycles, 10T (s)</th><th>Period T (s)</th><th>Deviation (T − T̄) (s)</th><th>(T − T̄)² (s²)</th></tr>
+        </thead>
+        <tbody id="pendulumBody">
+          <tr><td colspan="5" style="color:#888; font-style:italic;">No measurements recorded yet.</td></tr>
+        </tbody>
+      </table>
+
+      <div class="stats-box" id="pendulumStats" style="display:none;">
+        <div style="font-weight:700; color:#1a3a7a; margin-bottom:8px;">📊 Statistics</div>
+        <div class="stats-grid">
+          <div class="stat-item"><div class="label">N (trials)</div><div class="num" id="pN">0</div></div>
+          <div class="stat-item"><div class="label">Mean T̄</div><div class="num" id="pMean">—</div></div>
+          <div class="stat-item"><div class="label">Std Dev σ</div><div class="num" id="pStd">—</div></div>
+          <div class="stat-item"><div class="label">SE of mean</div><div class="num" id="pSEM">—</div></div>
+          <div class="stat-item"><div class="label">Theoretical T</div><div class="num" id="pTheory">—</div></div>
+          <div class="stat-item"><div class="label">% Error</div><div class="num" id="pErr">—</div></div>
+        </div>
+      </div>
+
+      <div class="button-row">
+        <button class="secondary" onclick="exportCSV('pendulum')">⬇ Download Pendulum Data (CSV)</button>
+      </div>
+    </div>
+
+    <!-- ============ PART B: Caliper ============ -->
+    <div class="panel" id="caliper">
+      <div class="info">
+        <b>Goal:</b> Measure the diameter of a metal cylinder 10 times using a virtual digital caliper. Each reading has both random and small systematic errors. Use the data to calculate uncertainty and to determine the volume of the cylinder via uncertainty propagation.
+      </div>
+
+      <div class="controls">
+        <div class="control">
+          <label>Random error level <span class="value" id="ranVal">±0.05 mm</span></label>
+          <input type="range" id="ranSlider" min="0.01" max="0.20" step="0.01" value="0.05">
+        </div>
+        <div class="control">
+          <label>Systematic offset <span class="value" id="sysVal">+0.02 mm</span></label>
+          <input type="range" id="sysSlider" min="-0.15" max="0.15" step="0.01" value="0.02">
+        </div>
+      </div>
+
+      <canvas id="caliperCanvas" width="700" height="220"></canvas>
+
+      <div class="readouts">
+        <div class="readout"><div class="label">Current reading</div><div class="num" id="caliperReading">— mm</div></div>
+        <div class="readout"><div class="label">Object</div><div class="num" id="caliperObj" style="font-size:13px;">Cylinder</div></div>
+        <div class="readout"><div class="label">Trials so far</div><div class="num" id="caliperN">0 / 10</div></div>
+        <div class="readout"><div class="label">Resolution</div><div class="num" id="caliperRes">0.01 mm</div></div>
+      </div>
+
+      <div class="button-row">
+        <button class="primary" onclick="takeCaliperReading()">📏 Take Measurement</button>
+        <button class="secondary" onclick="newCylinder()">🔄 New Random Cylinder</button>
+        <button class="danger" onclick="clearCaliperData()">🗑 Clear All Data</button>
+      </div>
+
+      <div class="info" style="margin-top: 12px;">
+        <b>Procedure:</b> Click <b>Take Measurement</b> 10 times to record diameter readings. The simulator adds small random fluctuations (representing how you and your partner squeeze the caliper slightly differently each time) and an unknown systematic offset (representing a small calibration error in the caliper).
+      </div>
+
+      <table id="caliperTable">
+        <thead>
+          <tr><th>Trial</th><th>Diameter (mm)</th><th>Deviation from mean (mm)</th></tr>
+        </thead>
+        <tbody id="caliperBody">
+          <tr><td colspan="3" style="color:#888; font-style:italic;">No measurements recorded yet.</td></tr>
+        </tbody>
+      </table>
+
+      <div class="stats-box" id="caliperStats" style="display:none;">
+        <div style="font-weight:700; color:#1a3a7a; margin-bottom:8px;">📊 Statistics</div>
+        <div class="stats-grid">
+          <div class="stat-item"><div class="label">N (trials)</div><div class="num" id="cN">0</div></div>
+          <div class="stat-item"><div class="label">Mean d̄</div><div class="num" id="cMean">—</div></div>
+          <div class="stat-item"><div class="label">Std Dev σ</div><div class="num" id="cStd">—</div></div>
+          <div class="stat-item"><div class="label">SE of mean</div><div class="num" id="cSEM">—</div></div>
+        </div>
+      </div>
+
+      <div class="button-row">
+        <button class="secondary" onclick="exportCSV('caliper')">⬇ Download Caliper Data (CSV)</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============ Tab Switching ============
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById(name).classList.add('active');
+}
+
+// ============ PART A: PENDULUM ============
+const lenSlider = document.getElementById('lenSlider');
+const rxnSlider = document.getElementById('rxnSlider');
+const lenVal = document.getElementById('lenVal');
+const rxnVal = document.getElementById('rxnVal');
+const pCanvas = document.getElementById('pendulumCanvas');
+const pCtx = pCanvas.getContext('2d');
+const startTimerBtn = document.getElementById('startTimerBtn');
+
+const g = 9.81;
+let pendLen = 1.00;
+let rxnSigma = 0.15;
+let pendulumData = [];
+let timerState = 'idle'; // idle, running, stopped
+let timerStart = 0;
+let elapsed = 0;
+let animTime = 0;
+
+function updatePendLabels() {
+  pendLen = parseFloat(lenSlider.value);
+  rxnSigma = parseFloat(rxnSlider.value);
+  lenVal.textContent = pendLen.toFixed(2) + ' m';
+  rxnVal.textContent = '±' + rxnSigma.toFixed(2) + ' s';
+}
+lenSlider.addEventListener('input', updatePendLabels);
+rxnSlider.addEventListener('input', updatePendLabels);
+
+function getTrueT() {
+  return 2 * Math.PI * Math.sqrt(pendLen / g);
+}
+
+function gaussian(sigma) {
+  // Box-Muller transform
+  const u1 = Math.random(), u2 = Math.random();
+  return sigma * Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+}
+
+function drawPendulum(now) {
+  const W = pCanvas.width, H = pCanvas.height;
+  pCtx.clearRect(0, 0, W, H);
+
+  const pivotX = W / 2;
+  const pivotY = 30;
+  const pixelsPerMeter = 110;
+  const ropeLen = Math.min(pendLen * pixelsPerMeter, H - 80);
+
+  // Animate based on real period
+  const T = getTrueT();
+  const omega = 2 * Math.PI / T;
+  const amplitude = 0.35; // radians (~20 degrees)
+  if (!animTime) animTime = now;
+  const t = (now - animTime) / 1000;
+  const angle = amplitude * Math.cos(omega * t);
+
+  const bobX = pivotX + ropeLen * Math.sin(angle);
+  const bobY = pivotY + ropeLen * Math.cos(angle);
+
+  // Pivot
+  pCtx.fillStyle = '#1a2540';
+  pCtx.fillRect(pivotX - 30, pivotY - 8, 60, 8);
+  pCtx.beginPath(); pCtx.arc(pivotX, pivotY, 4, 0, Math.PI * 2); pCtx.fill();
+
+  // Reference dashed line
+  pCtx.strokeStyle = '#c8d2e4';
+  pCtx.setLineDash([4, 4]);
+  pCtx.lineWidth = 1;
+  pCtx.beginPath();
+  pCtx.moveTo(pivotX, pivotY);
+  pCtx.lineTo(pivotX, pivotY + ropeLen + 10);
+  pCtx.stroke();
+  pCtx.setLineDash([]);
+
+  // Rope
+  pCtx.strokeStyle = '#3a4a6a';
+  pCtx.lineWidth = 2;
+  pCtx.beginPath();
+  pCtx.moveTo(pivotX, pivotY);
+  pCtx.lineTo(bobX, bobY);
+  pCtx.stroke();
+
+  // Bob
+  pCtx.fillStyle = '#d9544f';
+  pCtx.strokeStyle = '#7a2522';
+  pCtx.lineWidth = 2;
+  pCtx.beginPath();
+  pCtx.arc(bobX, bobY, 14, 0, Math.PI * 2);
+  pCtx.fill();
+  pCtx.stroke();
+
+  // Length and theoretical period info
+  const Ttheory = getTrueT();
+  pCtx.fillStyle = '#1a3a7a';
+  pCtx.font = 'bold 12px sans-serif';
+  pCtx.textAlign = 'left';
+  pCtx.fillText('L = ' + pendLen.toFixed(2) + ' m', 10, 20);
+  pCtx.fillText('g = 9.81 m/s²', 10, 38);
+  pCtx.font = '12px sans-serif';
+  pCtx.fillStyle = '#1a8a4a';
+  pCtx.fillText('Theoretical period:', 10, 60);
+  pCtx.font = 'bold 12px sans-serif';
+  pCtx.fillText('T = 2π√(L/g) = ' + Ttheory.toFixed(3) + ' s', 10, 78);
+  pCtx.fillStyle = '#5a6a85';
+  pCtx.font = '11px sans-serif';
+  pCtx.fillText('(Compare your measured T̄ to this value.)', 10, 94);
+
+  // Update timer display while running
+  if (timerState === 'running') {
+    elapsed = (Date.now() - timerStart) / 1000;
+    document.getElementById('timerDisplay').textContent = elapsed.toFixed(2) + ' s';
+  }
+
+  requestAnimationFrame(drawPendulum);
+}
+
+function handleTimerClick() {
+  if (timerState === 'idle') {
+    // Start
+    timerStart = Date.now();
+    timerState = 'running';
+    startTimerBtn.textContent = '⏹ Stop Timer (after 10 cycles)';
+    startTimerBtn.className = 'danger';
+    document.getElementById('periodDisplay').textContent = '— s';
+  } else if (timerState === 'running') {
+    // Stop
+    elapsed = (Date.now() - timerStart) / 1000;
+    timerState = 'stopped';
+
+    // The student is supposed to time 10 full cycles.
+    // Compute what the "true" 10-cycle time would be, with reaction-time noise added once.
+    // (Reaction noise enters once at start + once at stop ≈ rxnSigma.)
+    const trueT = getTrueT();
+    const true10T = trueT * 10;
+    // Measured 10T = true 10T + reaction noise (same magnitude regardless of how many cycles)
+    const measured10T = true10T + gaussian(rxnSigma);
+    const measuredT = measured10T / 10;  // dividing reduces the noise by factor of 10
+
+    pendulumData.push({ t10: measured10T, T: measuredT });
+    document.getElementById('timerDisplay').textContent = measured10T.toFixed(2) + ' s';
+    document.getElementById('periodDisplay').textContent = measuredT.toFixed(3) + ' s';
+    renderPendulumTable();
+
+    timerState = 'idle';
+    startTimerBtn.textContent = '▶ Start Timer';
+    startTimerBtn.className = 'primary';
+  }
+}
+
+function resetTimer() {
+  timerState = 'idle';
+  elapsed = 0;
+  document.getElementById('timerDisplay').textContent = '0.00 s';
+  document.getElementById('periodDisplay').textContent = '— s';
+  startTimerBtn.textContent = '▶ Start Timer';
+  startTimerBtn.className = 'primary';
+}
+
+function clearPendulumData() {
+  pendulumData = [];
+  renderPendulumTable();
+}
+
+function renderPendulumTable() {
+  const tbody = document.getElementById('pendulumBody');
+  if (pendulumData.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" style="color:#888; font-style:italic;">No measurements recorded yet.</td></tr>';
+    document.getElementById('pendulumStats').style.display = 'none';
+    return;
+  }
+  const periods = pendulumData.map(d => d.T);
+  const mean = periods.reduce((a, b) => a + b, 0) / periods.length;
+  tbody.innerHTML = pendulumData.map((d, i) => {
+    const dev = d.T - mean;
+    return `<tr><td>${i + 1}</td><td>${d.t10.toFixed(2)}</td><td>${d.T.toFixed(3)}</td><td>${dev.toFixed(4)}</td><td>${(dev * dev).toFixed(6)}</td></tr>`;
+  }).join('');
+
+  // Stats
+  const n = periods.length;
+  const variance = periods.reduce((s, T) => s + (T - mean) ** 2, 0) / Math.max(1, n - 1);
+  const std = Math.sqrt(variance);
+  const sem = std / Math.sqrt(n);
+  const theory = getTrueT();
+  const pctErr = Math.abs(mean - theory) / theory * 100;
+
+  document.getElementById('pendulumStats').style.display = 'block';
+  document.getElementById('pN').textContent = n;
+  document.getElementById('pMean').textContent = mean.toFixed(4) + ' s';
+  document.getElementById('pStd').textContent = (n > 1 ? std.toFixed(4) : '—') + (n > 1 ? ' s' : '');
+  document.getElementById('pSEM').textContent = (n > 1 ? sem.toFixed(4) : '—') + (n > 1 ? ' s' : '');
+  document.getElementById('pTheory').textContent = theory.toFixed(4) + ' s';
+  document.getElementById('pErr').textContent = pctErr.toFixed(2) + ' %';
+}
+
+// ============ PART B: CALIPER ============
+const ranSlider = document.getElementById('ranSlider');
+const sysSlider = document.getElementById('sysSlider');
+const ranVal = document.getElementById('ranVal');
+const sysVal = document.getElementById('sysVal');
+const cCanvas = document.getElementById('caliperCanvas');
+const cCtx = cCanvas.getContext('2d');
+
+let ranSigma = 0.05;
+let sysOffset = 0.02;
+let trueDiameter = 12.50; // mm
+let caliperData = [];
+let lastReading = null;
+
+function updateCaliperLabels() {
+  ranSigma = parseFloat(ranSlider.value);
+  sysOffset = parseFloat(sysSlider.value);
+  ranVal.textContent = '±' + ranSigma.toFixed(2) + ' mm';
+  sysVal.textContent = (sysOffset >= 0 ? '+' : '') + sysOffset.toFixed(2) + ' mm';
+}
+ranSlider.addEventListener('input', updateCaliperLabels);
+sysSlider.addEventListener('input', updateCaliperLabels);
+
+function newCylinder() {
+  // Pick a random "true" diameter between 8 and 20 mm
+  trueDiameter = 8 + Math.random() * 12;
+  clearCaliperData();
+}
+
+function takeCaliperReading() {
+  if (caliperData.length >= 10) {
+    alert('You have already taken 10 measurements. Click "Clear All Data" to start over.');
+    return;
+  }
+  // Reading = true + systematic + gaussian random
+  const reading = trueDiameter + sysOffset + gaussian(ranSigma);
+  // Round to caliper resolution (0.01 mm)
+  const rounded = Math.round(reading * 100) / 100;
+  caliperData.push(rounded);
+  lastReading = rounded;
+  renderCaliperTable();
+  drawCaliper();
+}
+
+function drawCaliper() {
+  const W = cCanvas.width, H = cCanvas.height;
+  cCtx.clearRect(0, 0, W, H);
+
+  // Title
+  cCtx.fillStyle = '#1a3a7a';
+  cCtx.font = 'bold 13px sans-serif';
+  cCtx.textAlign = 'left';
+  cCtx.fillText('Digital Caliper Measurement', 12, 22);
+
+  // Caliper body
+  const calY = 90;
+  cCtx.fillStyle = '#a8b4c8';
+  cCtx.fillRect(60, calY, W - 120, 16);
+  cCtx.strokeStyle = '#5a6a85';
+  cCtx.lineWidth = 1;
+  cCtx.strokeRect(60, calY, W - 120, 16);
+
+  // Caliper jaws
+  cCtx.fillStyle = '#7a8aa0';
+  // Fixed jaw (left)
+  cCtx.fillRect(60, calY - 50, 20, 50);
+  // Moving jaw (right) — position based on object
+  const objectPx = 240; // visual size
+  const movingX = 60 + 20 + objectPx;
+  cCtx.fillRect(movingX, calY - 50, 20, 50);
+
+  // The measured object (cylinder cross section)
+  const objCenterX = 60 + 20 + objectPx / 2;
+  const objY = calY - 25;
+  cCtx.fillStyle = '#c0a060';
+  cCtx.strokeStyle = '#7a6020';
+  cCtx.lineWidth = 2;
+  cCtx.beginPath();
+  cCtx.arc(objCenterX, objY, objectPx / 2 - 2, 0, Math.PI * 2);
+  cCtx.fill();
+  cCtx.stroke();
+
+  // Object label
+  cCtx.fillStyle = '#1a2540';
+  cCtx.font = '11px sans-serif';
+  cCtx.textAlign = 'center';
+  cCtx.fillText('Cylinder', objCenterX, objY + 4);
+
+  // Display screen on caliper
+  const screenX = W - 220;
+  const screenY = calY - 60;
+  cCtx.fillStyle = '#1a2540';
+  cCtx.fillRect(screenX, screenY, 160, 40);
+  cCtx.fillStyle = '#7af0a0';
+  cCtx.font = 'bold 22px "SF Mono", monospace';
+  cCtx.textAlign = 'center';
+  const displayText = lastReading !== null ? lastReading.toFixed(2) + ' mm' : '-- . -- mm';
+  cCtx.fillText(displayText, screenX + 80, screenY + 28);
+
+  // Hint
+  cCtx.fillStyle = '#888';
+  cCtx.font = '11px sans-serif';
+  cCtx.textAlign = 'left';
+  cCtx.fillText('(True diameter is hidden — that\'s the point of error analysis!)', 12, H - 12);
+
+  // Update side readout
+  document.getElementById('caliperReading').textContent =
+    lastReading !== null ? lastReading.toFixed(2) + ' mm' : '— mm';
+  document.getElementById('caliperN').textContent = caliperData.length + ' / 10';
+}
+
+function clearCaliperData() {
+  caliperData = [];
+  lastReading = null;
+  renderCaliperTable();
+  drawCaliper();
+}
+
+function renderCaliperTable() {
+  const tbody = document.getElementById('caliperBody');
+  if (caliperData.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="3" style="color:#888; font-style:italic;">No measurements recorded yet.</td></tr>';
+    document.getElementById('caliperStats').style.display = 'none';
+    return;
+  }
+  const mean = caliperData.reduce((a, b) => a + b, 0) / caliperData.length;
+  tbody.innerHTML = caliperData.map((d, i) => {
+    const dev = d - mean;
+    return `<tr><td>${i + 1}</td><td>${d.toFixed(2)}</td><td>${dev.toFixed(3)}</td></tr>`;
+  }).join('');
+
+  const n = caliperData.length;
+  const variance = caliperData.reduce((s, d) => s + (d - mean) ** 2, 0) / Math.max(1, n - 1);
+  const std = Math.sqrt(variance);
+  const sem = std / Math.sqrt(n);
+
+  document.getElementById('caliperStats').style.display = 'block';
+  document.getElementById('cN').textContent = n;
+  document.getElementById('cMean').textContent = mean.toFixed(3) + ' mm';
+  document.getElementById('cStd').textContent = (n > 1 ? std.toFixed(4) : '—') + (n > 1 ? ' mm' : '');
+  document.getElementById('cSEM').textContent = (n > 1 ? sem.toFixed(4) : '—') + (n > 1 ? ' mm' : '');
+}
+
+// ============ Export ============
+function exportCSV(which) {
+  let csv = '', filename = '';
+  if (which === 'pendulum') {
+    if (pendulumData.length === 0) { alert('No pendulum data to export.'); return; }
+    csv = 'Trial,10T (s),T (s)\n';
+    pendulumData.forEach((d, i) => csv += `${i + 1},${d.t10.toFixed(2)},${d.T.toFixed(4)}\n`);
+    filename = 'pendulum_data.csv';
+  } else {
+    if (caliperData.length === 0) { alert('No caliper data to export.'); return; }
+    csv = 'Trial,Diameter (mm)\n';
+    caliperData.forEach((d, i) => csv += `${i + 1},${d.toFixed(2)}\n`);
+    filename = 'caliper_data.csv';
+  }
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+// ============ Init ============
+updatePendLabels();
+updateCaliperLabels();
+newCylinder();
+drawCaliper();
+requestAnimationFrame(drawPendulum);
+</script>
+
+</body>
+</html>
